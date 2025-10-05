@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SophIA - Chatbot EPE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #f0f2f5;
+            font-family: 'Helvetica Neue', sans-serif;
+        }
+        .encabezado-institucional {
+            width: 100%;
+            text-align: center;
+            padding: 10px 0;
+            background-color: #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            border-bottom: 1px solid #ddd;
+        }
+        .encabezado-institucional h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #333;
+        }
+        .encabezado-institucional p {
+            margin: 5px 0 0;
+            font-size: 14px;
+            color: #555;
+        }
+        .main-container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            height: calc(100% - 80px);
+            box-sizing: border-box;
+            gap: 20px;
+            padding: 20px;
+        }
+        .logo-container {
+            flex: 1;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 0;
+        }
+        .logo-container img {
+            max-height: 80%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        .chat-container {
+            flex: 2;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-width: 350px;
+        }
+        .chat-header {
+            background-color: #0084ff;
+            color: white;
+            padding: 15px;
+            font-size: 20px;
+            text-align: center;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        .chat-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message {
+            max-width: 75%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        .usuario {
+            align-self: flex-end;
+            background-color: #0084ff;
+            color: white;
+        }
+        .bot {
+            align-self: flex-start;
+            background-color: #e4e6eb;
+            color: #050505;
+        }
+        .chat-footer {
+            display: flex;
+            padding: 10px;
+            background-color: #f0f2f5;
+            border-top: 1px solid #ddd;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 18px;
+            font-size: 15px;
+            background-color: #fff;
+        }
+        button {
+            margin-left: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 18px;
+            background-color: #0084ff;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #006bbf;
+        }
+
+        /* 📱 Responsive para celulares */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                height: auto;
+                padding: 10px;
+            }
+            .logo-container, .chat-container {
+                flex: none;
+                width: 100%;
+                height: auto;
+            }
+            .chat-container {
+                margin-top: 10px;
+            }
+            .encabezado-institucional h1 {
+                font-size: 18px;
+            }
+            .encabezado-institucional p {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="encabezado-institucional">
+        <h1>SINDICATO LUZ Y FUERZA - SANTA FE</h1>
+        <p>Secretaria de Estudios Técnicos y Estadísticas ⚡</p>
+    </div>
+
+    <div class="main-container">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='sophia_logo.png') }}" alt="Logo SophIA">
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-header">💬 SophIA - Asistente Virtual</div>
+
+            <div class="chat-body" id="chat-body">
+                {% for mensaje in historial %}
+                    <div class="message {{ mensaje.autor }}">{{ mensaje.texto | safe }}</div>
+                {% endfor %}
+            </div>
+
+            <form method="post" class="chat-footer">
+                <input type="text" name="mensaje" id="mensaje-input" placeholder="Escribí tu consulta..." required>
+                <button type="submit">Enviar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const chatBody = document.getElementById("chat-body");
+            const lastMessage = chatBody.lastElementChild;
+            if (lastMessage) {
+                lastMessage.scrollIntoView({ behavior: "auto", block: "end" });
+            }
+            document.getElementById("mensaje-input").focus();
+        };
+    </script>
+</body>
+</html>
