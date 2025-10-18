@@ -1,6 +1,7 @@
 from respuestas import RESPUESTAS
 from menu import MENU_PRINCIPAL, RESPUESTAS_MENU
 from tramites import SUBMENU_TRAMITES, RESPUESTAS_TRAMITES
+from corrimiento_bt import RESPUESTAS_CORRIMIENTO_BT  # Nuevo módulo
 from datetime import datetime
 import unicodedata
 
@@ -14,6 +15,7 @@ def normalizar(texto):
 RESPUESTAS_NORMALIZADAS = {normalizar(k): v for k, v in RESPUESTAS.items()}
 RESPUESTAS_MENU_NORMALIZADAS = {normalizar(k): v for k, v in RESPUESTAS_MENU.items()}
 RESPUESTAS_TRAMITES_NORMALIZADAS = {normalizar(k): v for k, v in RESPUESTAS_TRAMITES.items()}
+RESPUESTAS_CORRIMIENTO_BT_NORMALIZADAS = {normalizar(k): v for k, v in RESPUESTAS_CORRIMIENTO_BT.items()}
 
 def responder(mensaje):
     mensaje = normalizar(mensaje)
@@ -21,7 +23,6 @@ def responder(mensaje):
     # Saludo inicial → presentación institucional + menú
     if mensaje in ["hola", "buenas", "inicio", "menu", "menú"]:
         return "¡Hola! Mi nombre es SophIA, asistente virtual de la Empresa Provincial de la Energía Santa Fe. ¿Cómo puedo ayudarte? 😊<br><br>" + MENU_PRINCIPAL
-
 
     # Trámite frecuente (opción 3 del menú principal)
     if mensaje == "3":
@@ -47,5 +48,10 @@ def responder(mensaje):
     for clave_normalizada in RESPUESTAS_NORMALIZADAS:
         if clave_normalizada in mensaje:
             return RESPUESTAS_NORMALIZADAS[clave_normalizada]
+
+    # Coincidencias específicas: corrimiento de línea BT
+    for clave_bt in RESPUESTAS_CORRIMIENTO_BT_NORMALIZADAS:
+        if clave_bt in mensaje:
+            return RESPUESTAS_CORRIMIENTO_BT_NORMALIZADAS[clave_bt]
 
     return "No entiendo lo que decís. Escribí 'volver' para ver el menú principal."
