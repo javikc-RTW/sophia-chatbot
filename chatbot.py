@@ -1,9 +1,14 @@
 from respuestas import RESPUESTAS
 from menu import MENU_PRINCIPAL, RESPUESTAS_MENU
 from tramites import SUBMENU_TRAMITES, RESPUESTAS_TRAMITES
-from corrimiento_bt import RESPUESTAS_CORRIMIENTO_BT  # Nuevo módulo
+from corrimiento_bt import RESPUESTAS_CORRIMIENTO_BT
 from datetime import datetime
 import unicodedata
+import re
+import pandas as pd
+
+# URL pública de la pestaña "Copia de Expedientes" en formato CSV
+URL_EXPEDIENTES = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT-SqDDf8sr4Ip_cpL1Szp80HIsrVhqbYZToNEFroZO7_ZcOGlgqHl3nCZ08pvk6cIe1YdfZpOLozVi/pub?gid=1687177676&single=true&output=csv"
 
 def normalizar(texto):
     texto = texto.lower()
@@ -17,9 +22,63 @@ RESPUESTAS_MENU_NORMALIZADAS = {normalizar(k): v for k, v in RESPUESTAS_MENU.ite
 RESPUESTAS_TRAMITES_NORMALIZADAS = {normalizar(k): v for k, v in RESPUESTAS_TRAMITES.items()}
 RESPUESTAS_CORRIMIENTO_BT_NORMALIZADAS = {normalizar(k): v for k, v in RESPUESTAS_CORRIMIENTO_BT.items()}
 
+# Mapeo de estados a columnas de fecha
+ESTADO_FECHA_COLUMNAS = {
+    "OFICINA COMERCIAL": 9,     # Columna J
+    "RA EJECUCIÓN": 10,         # Columna K
+    "REALIZADO": 11,            # Columna L
+    "RA NORMALIZAR": 12,        # Columna M
+    "FINALIZADO": 13            # Columna N
+}
+
+# Glosa explicativa por estado
+GLOSA_ESTADO = {
+    "OFICINA COMERCIAL": "Informe elaborado desde UT Mantenimiento de Redes hacia la oficina comercial correspondiente.",
+    "RA EJECUCIÓN": "Pedido elaborado desde UT Mantenimiento de Redes hacia el sector Redes Aéreas para ejecutar el corrimiento.",
+    "REALIZADO": "El sector Redes Aéreas informó que la LABT se encuentra alejada de la Línea Municipal.",
+    "RA NORMALIZAR": "Pedido elaborado desde UT Mantenimiento de Redes hacia el sector Redes Aéreas para normalizar la LABT a su electroducto original.",
+    "FINALIZADO": "El trámite fue enviado a su oficina comercial inicializadora para archivo definitivo."
+}
+
+def consultar_expediente(numero_expediente):
+    try:
+        df = pd.read_csv(URL_EXPEDIENTES)
+        fila = df[df.iloc[:, 0] == numero_expediente]  # Columna A
+
+        if not fila.empty:
+            direccion = fila.iloc[0, 4]  # Columna E
+            estado = fila.iloc[0, 3]     # Columna D
+            estado_normalizado = estado.strip().upper()
+
+            # Buscar fecha según estado
+            columna_fecha = ESTADO_FECHA_COLUMNAS.get(estado_normalizado, None)
+            if columna_fecha is not None:
+                fecha = fila.iloc[0, columna_fecha]
+                fecha = fecha if pd.notna(fecha) and str(fecha).strip() else "Sin especificar"
+                glosa = GLOSA_ESTADO.get(estado_normalizado, "")
+            else:
+                fecha = "Sin especificar"
+                glosa = ""
+
+            return f"""Expediente N° {numero_expediente}
+ • Dirección: {direccion}
+ • Estado: {estado}
+ • Fecha asociada: {fecha}
+ • Significado del estado: {glosa}"""
+        else:
+            return f"Expediente N° {numero_expediente} no encontrado."
+    except Exception as e:
+        return f"No se pudo acceder a la base de expedientes. Verificá la conexión o el número ingresado."
+
 def responder(mensaje):
     mensaje = normalizar(mensaje)
-    
+
+    # Consulta directa por número de expediente (formato: 1-2025-1234567)
+    match = re.search(r"\b\d{1,4}-\d{4}-\d+\b", mensaje)
+    if match:
+        numero = match.group(0)
+        return consultar_expediente(numero)
+
     # Saludo inicial → presentación institucional + menú
     if mensaje in ["hola", "buenas", "inicio", "menu", "menú"]:
         return "¡Hola! Mi nombre es SophIA, asistente virtual de la Empresa Provincial de la Energía Santa Fe. ¿Cómo puedo ayudarte? 😊<br><br>" + MENU_PRINCIPAL
